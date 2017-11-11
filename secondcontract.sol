@@ -1,21 +1,36 @@
 pragma solidity ^0.4.0;
-contract MyContract {
+
+contract owned {
+     address owner;
     
-    uint256 myVariable;
-    
-    address owner;
-    
-    modifier onlyowner() {
+     modifier onlyowner() {
         if(owner == msg.sender) {
         _;
         } else {
             revert();
             }
-        }
+    }   
+}
 
+
+contract mortal is owned {
+
+    function mortal() public {
+        owner = msg.sender;
+    }
+    
+    function destroy() onlyowner public {
+        selfdestruct(owner);
+    }
+}
+
+
+contract MyContract is mortal {
+    
+    uint256 myVariable;
+    
      function  MyContract() public payable {
         myVariable = 5;
-        owner = msg.sender;
     }
     
     function setMyVariable(uint myNewVariable) public onlyowner{
@@ -30,13 +45,8 @@ contract MyContract {
         return this.balance;
     }
     
-    function destroy() public onlyowner {
-        selfdestruct(owner);
 
-    }
-    
     function () payable public {
         
     }
-    
 }
