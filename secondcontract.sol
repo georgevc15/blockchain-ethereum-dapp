@@ -2,7 +2,7 @@ pragma solidity ^0.4.0;
 
 contract owned {
      address owner;
-    
+
      modifier onlyowner() {
         if(owner == msg.sender) {
         _;
@@ -29,8 +29,18 @@ contract MyContract is mortal {
     
     uint256 myVariable;
     
-     function  MyContract() public payable {
+    mapping(address => Permission) myAddressMapping;
+     
+     struct Permission {
+         bool isAllowed;
+         uint maxTransferAmount;
+     }
+    
+    
+    function  MyContract() public payable {
         myVariable = 5;
+        
+        myAddressMapping[msg.sender] = Permission(true, 5);
     }
     
     function setMyVariable(uint myNewVariable) public onlyowner{
