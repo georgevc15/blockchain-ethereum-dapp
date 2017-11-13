@@ -27,7 +27,9 @@ contract mortal is owned {
 
 contract SimpleWallet is mortal {
     
-    mapping(address => Permission) myAddressMapping;
+    mapping(address => Permission) permittedAddress;
+    
+    event someoneAddedSomeoneToTheSendersList(address thePersonWhoAdded, address thePersonWhoiIsAllowedNow, uint thisMuchHeCanSend);
      
      struct Permission {
          bool isAllowed;
@@ -35,17 +37,30 @@ contract SimpleWallet is mortal {
      }
     
     function addAddressToSendersList(address permitted, uint maxTransferAmount) onlyowner public {
-        myAddressMapping[permitted] = Permission(true, maxTransferAmount);
+        permittedAddress[permitted] = Permission(true, maxTransferAmount);
+        someoneAddedSomeoneToTheSendersList(msg.sender, permitted, maxTransferAmount);
     }
     
     function sendFunds(address receiver, uint amountInWei) public {
-        if(myAddressMapping[msg.sender].isAllowed) {
-            if(myAddressMapping[msg.sender].maxTransferAmount <= amountInWei) {
-                receiver.send(amountInWei);
+        if(permittedAddress[msg.sender].isAllowed) {
+                if(permittedAddress[msg.sender].maxTransferAmount >= amountInWei) {
+                    bool isTheAmountReallySent = receiver.send(amountInWei);
+                    if(!isTheAmountReallySent) {
+                        revert();
+                        }
+                    } else {
+                     revert();
+                    }
+                } else {
+                    revert();
+                }
             }
-        }
-    }
-
+            
+    function removeAddressFromSendersList(address theAddress) public {
+        delete permittedAddress[theAddress];
+    }        
+      
+    
     function () payable public {
         
     }
