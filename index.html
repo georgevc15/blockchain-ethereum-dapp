@@ -1,0 +1,56 @@
+<!doctype html>
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<title>Dapp</title>
+		<script src="dist/web3.min.js"></script>
+		<script type="text/javascript">
+			
+			if (typeof web3 !== 'undefined') {
+				  web3 = new Web3(web3.currentProvider);
+				} else {
+				  // set the provider you want from Web3.providers
+				  web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:9545"));
+				}
+
+				
+				//console.log(web3)
+
+				function getBalance() {
+					//get balance from the first account	
+					//document.getElementById("accountBalance").innerText = web3.eth.getBalance(web3.eth.accounts[0]);
+					var balance = web3.eth.getBalance("0xD52E74D3714bE488a3F38CFe08F7045107708F3f");
+				    //document.getElementById("accountBalance").innerText = balance.toNumber();
+
+				    console.log((balance)); // instanceof BigNumber
+					//console.log(balance.toString(10)); // '1000000000000'
+
+				}
+
+			
+			web3.version.getNetwork((err, netId) => {
+			  switch (netId) {
+			    case "1":
+			      console.log('This is mainnet')
+			      break
+			    case "2":
+			      console.log('This is the deprecated Morden test network.')
+			      break
+			    case "3":
+			      console.log('This is the ropsten test network.')
+			      break
+			    default:
+			      console.log('This is an unknown network.')
+			  }
+			})
+
+
+
+		</script>
+	</head>
+	<body>
+	<h1>Account balance</h1>
+	<button onclick="getBalance()">Update balance</button>
+	<span id="accountBalance"></span>
+	</body>
+	</html>
