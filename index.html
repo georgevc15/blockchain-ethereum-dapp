@@ -3,9 +3,12 @@
 	<html>
 	<head>
 		<title>Dapp</title>
-		<script src="dist/web3.min.js"></script>
+		<script src="web3.js/dist/web3.min.js"></script>
 		<script type="text/javascript">
 			
+			var contractAddress = ""; //from mist
+			var contractApi = [{}]; //from mist
+
 			if (typeof web3 !== 'undefined') {
 				  web3 = new Web3(web3.currentProvider);
 				} else {
@@ -44,6 +47,11 @@
 			  }
 			})
 
+		var contractInstance = web3.eth.contract(contractApi).at(contractAddress);
+
+		function getCounter() {
+			document.getElementById("myCounter").innerText  = contractInstance.getMyNumber().toNumber;
+		}
 
 
 		</script>
@@ -52,5 +60,12 @@
 	<h1>Account balance</h1>
 	<button onclick="getBalance()">Update balance</button>
 	<span id="accountBalance"></span>
+	
+	<h1>Interact with a contract</h1>
+	<button onclick="getCounter">Update counter</button>
+	<button onclick="increaseCounter">Increase counter</button>
+
+	<span id="myCounter"></span> Counter
+
 	</body>
 	</html>
