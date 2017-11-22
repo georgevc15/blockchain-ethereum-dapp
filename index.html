@@ -53,6 +53,38 @@
 			document.getElementById("myCounter").innerText  = contractInstance.getMyNumber().toNumber;
 		}
 
+		function increaseCounter() {
+			var currentNumber = contractInstance.getMyNumber().toNumber();
+			currentNumber++;
+			web3.personal.unlockAccount(web3.eth.accounts[0], '12345678')
+			contractInstance.setMyNumber(currentNumber, {from: web3.eth.accounts[0], gas: 200000}, function(error, result) {
+				if (error) {
+					console.log(error);
+				} else {
+					var txHash = result;
+					console.log(txHash);
+					calledWhenMined(txHash, getCounter)
+					}
+			});
+		
+			function calledWhenMined(txHash, callback) {
+				web3.eth.getTransactionReceipt(txHash, function(error, rcpt) {
+					if(error) {
+						console.error(error);
+					} else {
+						if(rcpt == null) {
+							setTimeout(function() {
+								calledWhenMined(txHash, callback);
+							}, 500)
+						} else {
+							//is mined
+							callback();
+						}
+					}
+				})
+			}
+
+		}
 
 		</script>
 	</head>
@@ -62,8 +94,8 @@
 	<span id="accountBalance"></span>
 	
 	<h1>Interact with a contract</h1>
-	<button onclick="getCounter">Update counter</button>
-	<button onclick="increaseCounter">Increase counter</button>
+	<button onclick="getCounter()">Update counter</button>
+	<button onclick="increaseCounter()">Increase counter</button>
 
 	<span id="myCounter"></span> Counter
 
