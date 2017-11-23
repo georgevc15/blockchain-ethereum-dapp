@@ -1,0 +1,99 @@
+<!doctype html>
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<title>Dapp</title>
+		<script src="web3.js/dist/web3.min.js"></script>
+		<script type="text/javascript">
+
+
+			var contractCode = "pragma solidity ^0.4.0; contract Web3Contract { address creator; uint256 myNumber; function MyContract() public { creator = msg.sender; myNumber = 3; } function getCreator() public constant returns(address) { return creator; } function getMyNumber() public constant returns(uint256) { return myNumber; } function setMyNumber(uint256 myNewNumber) public { myNumber = myNewNumber; } function kill() public constant { if(msg.sender == creator) { selfdestruct(creator); } } }";
+
+			
+			if (typeof web3 !== 'undefined') {
+				  web3 = new Web3(web3.currentProvider);
+				} else {
+				  // set the provider you want from Web3.providers
+				  web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:9545"));
+				}
+
+
+			var contractInstance;
+
+
+			function deployContract() {
+				var compiledContract = web3.eth.compile.solidity(contractCode);
+				var code = compiledContract['<stdin>:MyContract'].code;
+				var abi = compiledContract['<stdin>:MyContract'].info.abiDefinition;
+				web3.personal.unlockAccount(web3.eth.accounts[0], '12345678');
+				web3.eth.contract(abi).new({data:code, from:web3.eth.accounts[0], gas:3000000}, function(error, result) {
+					if(error) {
+						console.log(error);
+					} else {
+						if(result.address) {
+							contractInstance = result;
+							console.log(contractInstance);
+							document.getElementById("ubc").style.visibility = 'visible';
+							document.getElementById("ibc").style.visibility = 'visible';
+						}
+					}
+				})
+
+			}
+
+
+			function getCounter() {
+				document.getElementById("myCounter").innerText  = contractInstance.getMyNumber().toNumber;
+			}
+
+
+			function increaseCounter() {
+					var currentNumber = contractInstance.getMyNumber().toNumber();
+					currentNumber++;
+					web3.personal.unlockAccount(web3.eth.accounts[0], '12345678')
+					contractInstance.setMyNumber(currentNumber, {from: web3.eth.accounts[0], gas: 200000}, function(error, result) {
+						if (error) {
+							console.log(error);
+						} else {
+							var txHash = result;
+							console.log(txHash);
+							calledWhenMined(txHash, getCounter)
+							}
+				});
+		
+
+			function calledWhenMined(txHash, callback) {
+					web3.eth.getTransactionReceipt(txHash, function(error, rcpt) {
+						if(error) {
+							console.error(error);
+						} else {
+							if(rcpt == null) {
+								setTimeout(function() {
+									calledWhenMined(txHash, callback);
+								}, 500)
+							} else {
+								//is mined
+								callback();
+						}
+					}
+				})
+			}
+
+		}
+
+		</script>
+	</head>
+	<body>
+	<h1>Account balance</h1>
+	<button onclick="getBalance()">Update balance</button>
+	<span id="accountBalance"></span>
+	
+	<h1>Interact with a contract</h1>
+	<button onclick="deployContract">Deploy contract</button>
+	<button onclick="getCounter()" id="ubc" style="visibility: hidden;">Update counter</button>
+	<button onclick="increaseCounter()" id="ibc" style="visibility: hidden;">Increase counter</button>
+
+	<span id="myCounter"></span> Counter
+
+	</body>
+	</html>
