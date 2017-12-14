@@ -44,16 +44,30 @@ window.App = {
       document.getElementById("addresses").innerHtml = accounts.join("<br/>");
 
       App.basicInfoUpdate();
+      App.listenToEvents();
     });
   },
 
-  basicInfoUpdate: function() {
 
+  basicInfoUpdate: function() {
       MyWallet.deployed().then(function(instance) {
           document.getElementById("walletAddress").innerHtml = instance.address;
           document.getElementById("walletEther").innerHtml = web3.fromWei(web3.eth.getBalance(instance.address).toNumber(), "ether");
       })
   },
+
+
+  listenToEvents: function() {
+    MyWallet.deployed().then(function(instance) {
+      instance.receivedFunds({},{fromBlock:0, toBlock:'latest'}).watch(function(error, event) {
+        document.getElementById("fundsEvents").innerHtml += JSON.strigify(event);
+      });
+      instance.proposalReceived({},{fromBlock:0, toBlock:'latest'}).watch(function(error, event) {
+        document.getElementById("proposalEvents").innerHtml += JSON.strigify(event);
+      });
+    });
+  }
+
 
   submitEtherToWallet: function() {
     MyWallet.deployed().then(function(instance) {
@@ -65,12 +79,13 @@ window.App = {
     });
   },
 
+
   submitTransaction: function() {
     var _to = document.getElementById("to").value;
     var _amount = parseInt(document.getElementById("amount").value);
     var _reason = document.getElementById("reason").value;
     MyWallet.deployed().then(function(instance) {
-      return instance.spendMoneyOn(_to, web3.toWei(_amount, 'finney'), _reason, {from:accounts[0]});
+      return instance.spendMoneyOn(_to, web3.toWei(_amount, 'finney'), _reason, {from:accounts[1], gas:500000});
     }).then(function(result) {
       console.log(result);
       App.basicInfoUpdate();
@@ -78,6 +93,7 @@ window.App = {
         console.error(err);
       });
   },
+
 
   sendCoin: function() {
     var self = this;
